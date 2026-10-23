@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test de connexion ChaufLink</title>
+<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:24px auto;padding:0 16px;line-height:1.5}
+.r{border:1px solid #ccc;border-radius:8px;padding:10px 14px;margin:10px 0}.ok{border-color:#2a9d4a;background:#eaf7ee}.ko{border-color:#c0392b;background:#fdecea}
+code{word-break:break-all}</style></head><body>
+<h1>Test de connexion</h1>
+<p>Les tests se lancent seuls. Attendez 5 secondes, puis envoyez une capture d’écran de cette page.</p>
+<div id="out"></div>
+<script>
+const URL_ = 'https://bunjkkvybjirpqocwlhu.supabase.co';
+const KEY = 'sb_publishable_r0J31fcYzW6CO4Y4x7muDw_gjiXmVbe';
+const out = document.getElementById('out');
+function show(title, ok, detail) {
+  const d = document.createElement('div'); d.className = 'r ' + (ok ? 'ok' : 'ko');
+  d.innerHTML = '<strong>' + (ok ? 'OK' : 'ÉCHEC') + ' — ' + title + '</strong><br><code>' + String(detail).replace(/</g, '&lt;').slice(0, 300) + '</code>';
+  out.appendChild(d);
+}
+async function t(title, url, opt, okIf) {
+  try { const r = await fetch(url, opt); const x = await r.text(); show(title, okIf(r.status), 'Statut ' + r.status + ' — ' + x); }
+  catch (e) { show(title, false, e.name + ' : ' + e.message); }
+}
+(async () => {
+  show('Informations', true, navigator.userAgent + ' | en ligne : ' + navigator.onLine);
+  await t('1. Internet en général (api.github.com)', 'https://api.github.com/zen', {}, s => s === 200);
+  await t('2. Serveur Supabase, lecture des réglages', URL_ + '/auth/v1/settings', {headers: {apikey: KEY}}, s => s === 200);
+  await t('3. Base de données, lecture des offres', URL_ + '/rest/v1/jobs?select=id&limit=1', {headers: {apikey: KEY}}, s => s === 200);
+  await t('4. Création de compte (test volontairement invalide, une erreur 4xx est NORMALE)', URL_ + '/auth/v1/signup',
+    {method: 'POST', headers: {apikey: KEY, 'Content-Type': 'application/json'}, body: JSON.stringify({email: 'pas-un-email', password: '1'})}, s => s >= 400 && s < 500);
+})();
+</script></body></html>
